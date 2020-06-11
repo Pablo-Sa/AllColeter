@@ -1,9 +1,26 @@
-import express from 'express'
+import express, { request, response } from 'express'
+import knex from './database/connection'
 
 const routes = express.Router();
 
-routes.get('/', (request, response) => {
-    response.json({message: 'Hellow Word'})
+routes.get('/items', async (request, response) => {
+    const items = await knex('items').select('*');
+
+    const serializedItems = items.map(item =>{
+
+        return { title: item.title,
+                 image_url: `http://localhost:3333/images/${item.image}`        
+               };
+
+    })
+
+
+    return response.json(serializedItems)
+ })
+
+ routes.post('/points', async(request, response) =>{
+    
+
  })
 
  export default routes
