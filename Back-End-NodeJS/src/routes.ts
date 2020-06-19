@@ -11,6 +11,7 @@ const itemsControllers = new ItemsControllers();
 routes.get('/points/:id', pointsControllers.show)
 routes.get('/points', pointsControllers.index)
 routes.post('/points', pointsControllers.create)
+routes.delete('/points/:id', pointsControllers.delete)
 
 routes.get('/items', itemsControllers.index)
 

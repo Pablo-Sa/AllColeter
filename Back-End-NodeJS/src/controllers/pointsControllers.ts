@@ -1,4 +1,4 @@
-import { Response, Request, response } from 'express';
+import { Response, Request } from 'express';
 import knex from '../database/connection';
 
 class PointsControllers {
@@ -17,6 +17,7 @@ class PointsControllers {
       .distinct()
       .select('points.*');
 
+      console.log(city,uf,items)
     return response.json(points)
   }
 
@@ -43,7 +44,7 @@ class PointsControllers {
 
   async create(request: Request, response: Response) {
     const {
-      name,
+      nome,
       email,
       whatsapp,
       latitude,
@@ -57,7 +58,7 @@ class PointsControllers {
 
     const point = {
       image: 'https://images.unsplash.com/photo-1542838132-92c53300491e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=400&q=60',
-      name,
+      nome,
       email,
       whatsapp,
       latitude,
@@ -77,6 +78,8 @@ class PointsControllers {
       };
     })
 
+    console.log(items)
+
     await trx('point_items').insert(pointItems);
 
     await trx.commit();
@@ -86,6 +89,18 @@ class PointsControllers {
       ...point
     })
 
+  }
+
+  async delete(request: Request, response: Response) {
+    const { id } = request.params;
+
+    const point = await knex('points').where('id', id).delete();
+
+    if (!point) {
+      return response.status(400).json({ message: 'Point not found.' });
+    }
+
+    return response.json({ msg: 'successfully deleted' });
   }
 }
 
