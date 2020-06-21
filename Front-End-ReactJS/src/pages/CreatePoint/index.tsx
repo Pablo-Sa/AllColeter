@@ -134,7 +134,7 @@ const CreatePoint = () => {
 
         alert('Deu Tudo Certo.');
 
-        // history.push('/');
+        history.push('/');
     }
 
     return (
