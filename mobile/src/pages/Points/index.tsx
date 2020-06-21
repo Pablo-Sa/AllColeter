@@ -2,21 +2,32 @@ import React, { useEffect, useState } from 'react';
 import Constants from 'expo-constants';
 import { Feather as Icon } from '@expo/vector-icons';
 import { useNavigation, useTheme } from '@react-navigation/native';
-import { View, StyleSheet, Text, TouchableOpacity, Image, ScrollView } from 'react-native';
+import { View, StyleSheet, Text, TouchableOpacity, Image, Alert, ScrollView } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import { SvgUri } from 'react-native-svg';
 import api from '../../services/api';
+import * as Location from 'expo-location';
 
 interface Items {
-    id: number,
-    title: string,
+    id: number;
+    title: string;
     image_url: string
+}
+
+interface Points {
+    id: number;
+    name: string;
+    image_url: string;
+    latitude: number;
+    logintude: number;
 }
 
 const Points = () => {
     const navigation = useNavigation();
     const [items, setItems] = useState<Items[]>([]);
     const [selectedItems, setSelectedItems] = useState<number[]>([]);
+    const [initialPosition, setInitialPosition] = useState<[number, number]>([0,0]);
+    const [points, setPoints] = useState<Points[]>([]);
 
     useEffect(() => {
         api.get('items').then(response => {
@@ -25,9 +36,41 @@ const Points = () => {
     }, []);
 
     useEffect(()=>{
-
+        api.get('points',{
+            params: {
+                city: 'Uberlândia',
+                uf: 'MG',
+                items: [1,2,3,4,5,6]
+            }
+        }).then(response =>{
+            setPoints(response.data)
+        })
     },[])
 
+    useEffect(() => {
+        async function loadPosition() {
+          const { status } = await Location.requestPermissionsAsync();
+    
+          if (status !== 'granted') {
+            Alert.alert('Oooops...', 'Precisamos de sua permissão para obter a localização');
+            return;
+          }
+    
+          const location = await Location.getCurrentPositionAsync();
+    
+          const { latitude, longitude } = location.coords;
+    
+          console.log(latitude, longitude);
+    
+          setInitialPosition([
+            latitude,
+            longitude
+          ])
+        }
+    
+        loadPosition();
+      }, []);
+    
     function handleNavigationBack() {
         navigation.goBack();
     }
@@ -57,29 +100,35 @@ const Points = () => {
                 <Text style={styles.description}>Encontre no mapa um ponto de coleta.</Text>
 
                 <View style={styles.mapContainer}>
-                    <MapView
+                   {initialPosition[0] !== 0 && (
+                        <MapView
                         style={styles.map}
                         initialRegion={{
-                            latitude: -19.925771,
-                            longitude: -43.941698,
+                            latitude: initialPosition[0],
+                            longitude: initialPosition[1],
                             latitudeDelta: 0.014,
                             longitudeDelta: 0.014
                         }}
+                        loadingEnabled={initialPosition[0] === 0}
                     >
+                    {points.map(point => (
                         <Marker
-                            style={styles.mapMarker}
-                            coordinate={{
-                                latitude: -19.925771,
-                                longitude: -43.941698
-                            }}
-                            onPress={handleNavigationDetail}
+                        key={String(point.id)}
+                        style={styles.mapMarker}
+                        coordinate={{
+                            latitude: 0,
+                            longitude: 0 //-18.9137, -48.3339
+                        }}
+                        onPress={handleNavigationDetail}
                         >
-                            <View style={styles.mapMarkerContainer}>
-                                <Image style={styles.mapMarkerImage} source={{ uri: 'https://images.unsplash.com/photo-1542838132-92c53300491e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=400&q=60' }} />
-                                <Text style={styles.mapMarkerTitle}>Mercado</Text>
-                            </View>
-                        </Marker>
+                          <View style={styles.mapMarkerContainer}>
+                            <Image style={styles.mapMarkerImage} source={{ uri: point.image_url }} />
+                            <Text style={styles.mapMarkerTitle}>{point.name}</Text>
+                          </View>
+                        </Marker>      
+                    ))}        
                     </MapView>
+                   )}
                 </View>
             </View>
             <View style={styles.itemsContainer}>
