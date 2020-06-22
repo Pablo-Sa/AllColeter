@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import Constants from 'expo-constants';
 import { Feather as Icon } from '@expo/vector-icons';
-import { useNavigation, useTheme } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { View, StyleSheet, Text, TouchableOpacity, Image, Alert, ScrollView } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import { SvgUri } from 'react-native-svg';
@@ -14,20 +14,28 @@ interface Items {
     image_url: string
 }
 
-interface Points {
+interface Point {
     id: number;
-    name: string;
-    image_url: string;
+    nome: string;
+    image: string;
     latitude: number;
-    logintude: number;
+    longitude: number;
+  }
+
+interface Params {
+    selectedUF: string;
+    selectedCity: string;
 }
 
 const Points = () => {
+    const route = useRoute();
+    const routeParams = route.params as Params;
+
     const navigation = useNavigation();
     const [items, setItems] = useState<Items[]>([]);
     const [selectedItems, setSelectedItems] = useState<number[]>([]);
     const [initialPosition, setInitialPosition] = useState<[number, number]>([0,0]);
-    const [points, setPoints] = useState<Points[]>([]);
+    const [points, setPoints] = useState<Point[]>([]);
 
     useEffect(() => {
         api.get('items').then(response => {
@@ -36,16 +44,17 @@ const Points = () => {
     }, []);
 
     useEffect(()=>{
-        api.get('points',{
+        console.log(routeParams)
+        api.get('points', {
             params: {
-                city: 'Uberlândia',
-                uf: 'MG',
-                items: [1,2,3,4,5,6]
+                city: routeParams.selectedCity,
+                uf: routeParams.selectedUF,
+                items: selectedItems
             }
         }).then(response =>{
-            setPoints(response.data)
+            setPoints(response.data);
         })
-    },[])
+    },[selectedItems]);
 
     useEffect(() => {
         async function loadPosition() {
@@ -60,8 +69,6 @@ const Points = () => {
     
           const { latitude, longitude } = location.coords;
     
-          console.log(latitude, longitude);
-    
           setInitialPosition([
             latitude,
             longitude
@@ -75,8 +82,8 @@ const Points = () => {
         navigation.goBack();
     }
 
-    function handleNavigationDetail() {
-        navigation.navigate('Detail');
+    function handleNavigationDetail(id: number) {
+        navigation.navigate('Detail', { point_id: id });
     }
 
     function handleSelectItem(id: number) {
@@ -116,14 +123,14 @@ const Points = () => {
                         key={String(point.id)}
                         style={styles.mapMarker}
                         coordinate={{
-                            latitude: 0,
-                            longitude: 0 //-18.9137, -48.3339
+                            latitude: point.latitude,
+                            longitude: point.longitude //-18.9137, -48.3339
                         }}
-                        onPress={handleNavigationDetail}
+                        onPress={() => handleNavigationDetail(point.id)}
                         >
                           <View style={styles.mapMarkerContainer}>
-                            <Image style={styles.mapMarkerImage} source={{ uri: point.image_url }} />
-                            <Text style={styles.mapMarkerTitle}>{point.name}</Text>
+                            <Image style={styles.mapMarkerImage} source={{ uri: point.image }} />
+                    <Text style={styles.mapMarkerTitle}>{point.nome}</Text>
                           </View>
                         </Marker>      
                     ))}        
