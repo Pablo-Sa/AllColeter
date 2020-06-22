@@ -54,8 +54,6 @@ const Home = () => {
     };
 
     function handleNavigationToPoints(){
-        console.log(selectedUF);
-        console.log(selectedCity);
         navigation.navigate('Points',{
             selectedUF,
             selectedCity
