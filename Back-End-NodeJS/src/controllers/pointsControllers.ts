@@ -1,5 +1,6 @@
 import { Response, Request } from 'express';
 import knex from '../database/connection';
+import Utils from '../utils/util';
 
 class PointsControllers {
   async index(request: Request, response: Response) {
@@ -17,8 +18,11 @@ class PointsControllers {
       .distinct()
       .select('points.*');
 
-      console.log(city,uf,items)
-    return response.json(points)
+    const utils = new Utils();  
+
+    const serializedPoints = utils.serializedPoints(points);
+
+    return response.json(serializedPoints)
   }
 
   async show(request: Request, response: Response) {
@@ -35,8 +39,12 @@ class PointsControllers {
       .where('point_items.point_id', id)
       .select('items.title');
 
+    const utils = new Utils();  
+    
+    const serializedPoint = utils.serializedPoint(point);
+
     return response.json({
-      point,
+      point: serializedPoint,
       items
     });
   }
@@ -57,7 +65,7 @@ class PointsControllers {
     const trx = await knex.transaction();
 
     const point = {
-      image: 'https://images.unsplash.com/photo-1542838132-92c53300491e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=400&q=60',
+      image: request.file.filename,
       nome,
       email,
       whatsapp,
