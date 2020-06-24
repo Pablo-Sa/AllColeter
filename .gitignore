@@ -2,8 +2,8 @@
 ./FrontEnd-ReactJS/node_modules/
 ./Back-End-NodeJS/node_modules/
 # Mobile
-./mobile/node_modules/**/*
-./mobile/expo/*
+./Mobile-ReactNative/node_modules/**/*
+./Mobile-ReactNative/expo/*
 npm-debug.*
 *.jks
 *.p8
